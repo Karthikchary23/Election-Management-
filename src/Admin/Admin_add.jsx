@@ -19,7 +19,7 @@ function Admin_add() {
       .then((response) => {
         console.log(response.data);
         reset();
-        alert("Added candidate successful!"); // Success alert
+        alert("Added Admin successful!"); // Success alert
         // Clear the form fields after submitting
       })
       .catch((error) => {
