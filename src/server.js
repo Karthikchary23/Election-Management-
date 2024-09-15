@@ -3,9 +3,17 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import bcrypt from 'bcrypt';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const port = 5000;
+
+// Get the directory name from the URL
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // MongoDB connection
 mongoose.connect('mongodb://localhost:27017/election_management', {
@@ -21,6 +29,103 @@ db.once('open', () => {
 
 app.use(cors());
 app.use(bodyParser.json());
+
+// Serve uploaded images statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Multer setup for file upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = './uploads';
+    if (!fs.existsSync(dir)){
+      fs.mkdirSync(dir);
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage });
+
+// Position Schema
+const positionSchema = new mongoose.Schema({
+  position: { type: String, required: true },
+});
+
+const Positiondetails = mongoose.model('Positiondetails', positionSchema);
+
+// Candidate Schema
+const candidateSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  position: { type: String, required: true },
+  area: { type: String, required: true },
+  image: { type: String, required: true },
+});
+
+const Candidate = mongoose.model('Candidate', candidateSchema);
+
+// Fetch all positions for dropdown
+app.get('/positions', async (req, res) => {
+  try {
+    const positions = await Positiondetails.find({});
+    res.status(200).json(positions);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching positions' });
+  }
+});
+
+// Add new candidate
+app.post('/candidates', upload.single('image'), async (req, res) => {
+  const { name, position, area } = req.body;
+  const image = req.file.filename;
+
+  try {
+    const candidate = new Candidate({ name, position, area, image });
+    await candidate.save();
+    res.status(201).json(candidate);
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving candidate' });
+  }
+});
+
+// Fetch all candidates
+app.get('/candidates', async (req, res) => {
+  try {
+    const candidates = await Candidate.find({});
+    res.status(200).json(candidates);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching candidates' });
+  }
+});
+
+// Edit candidate
+app.put('/candidates/:id', upload.single('image'), async (req, res) => {
+  const { name, position, area } = req.body;
+  const image = req.file ? req.file.filename : null;
+
+  try {
+    const updatedCandidate = await Candidate.findByIdAndUpdate(
+      req.params.id,
+      { name, position, area, ...(image && { image }) },
+      { new: true }
+    );
+    res.status(200).json(updatedCandidate);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating candidate' });
+  }
+});
+
+// Delete candidate
+app.delete('/candidates/:id', async (req, res) => {
+  try {
+    await Candidate.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Candidate deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting candidate' });
+  }
+});
 
 // Voter Schema
 const voterSchema = new mongoose.Schema({
@@ -69,9 +174,7 @@ app.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const voter = new Voter({ ...req.body, password: hashedPassword });
     await voter.save();
     res.status(201).json(voter);
@@ -97,9 +200,7 @@ app.post('/addadmindata', async (req, res) => {
       return res.status(400).json({ message: 'Admin already exists' });
     }
 
-    // Hash the admin password before saving
     const hashedPassword = await bcrypt.hash(Admin_password, 10);
-
     const adminDetails = new Admin({
       Admin_mail,
       Admin_password: hashedPassword,
@@ -121,7 +222,6 @@ app.post('/admin_login', async (req, res) => {
       return res.status(400).json({ message: 'Admin not found' });
     }
 
-    // Compare the hashed password with the plain text password
     const isMatch = await bcrypt.compare(admin_password, existingAdmin.Admin_password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Incorrect password' });
@@ -133,7 +233,7 @@ app.post('/admin_login', async (req, res) => {
   }
 });
 
-// Voter Login 
+// Voter Login
 app.post("/voterslogin", async (req, res) => {
   const { email_voter, password, aadhar_number } = req.body;
   try {
@@ -146,7 +246,6 @@ app.post("/voterslogin", async (req, res) => {
       return res.status(400).json({ message: 'Incorrect Aadhar number' });
     }
 
-    // Compare the hashed password with the plain text password
     const isMatch = await bcrypt.compare(password, voterAuthentication.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Incorrect password' });
@@ -158,34 +257,22 @@ app.post("/voterslogin", async (req, res) => {
   }
 });
 
-// Position Schema
-const positionSchema = new mongoose.Schema({
-  position: { type: String, required: true },
-});
-
-const Positiondetails = mongoose.model('Positiondetails', positionSchema);
-
-// POST endpoint
+// Add position (POST)
 app.post("/position", async (req, res) => {
   try {
-    // Validate the input data
     if (!req.body.position) {
       return res.status(400).send("Position is required");
     }
     
-    // Check for existing position with the same name to avoid duplicates
     const existingPosition = await Positiondetails.findOne({ position: req.body.position });
     if (existingPosition) {
       return res.status(600).send("Position already exists");
     }
 
-    // Create a new position entry
     const position1 = new Positiondetails(req.body);
     await position1.save();
-    
     res.status(201).send(position1);
   } catch (error) {
-    console.error("Error saving position:", error);
     res.status(500).send(error.message || "An unexpected error occurred");
   }
 });
