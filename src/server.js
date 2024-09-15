@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import bcrypt from 'bcrypt'; // Import bcrypt
+import bcrypt from 'bcrypt';
 
 const app = express();
 const port = 5000;
@@ -137,47 +137,58 @@ app.post('/admin_login', async (req, res) => {
 app.post("/voterslogin", async (req, res) => {
   const { email_voter, password, aadhar_number } = req.body;
   try {
-    const voterAutentication = await Voter.findOne({ email: email_voter });
+    const voterAuthentication = await Voter.findOne({ email: email_voter });
 
-    if (!voterAutentication) {
+    if (!voterAuthentication) {
       return res.status(400).json({ message: 'Email not found' });
     }
-    if (voterAutentication.aadhar_number !== aadhar_number) {
+    if (voterAuthentication.aadhar_number !== aadhar_number) {
       return res.status(400).json({ message: 'Incorrect Aadhar number' });
     }
 
     // Compare the hashed password with the plain text password
-    const isMatch = await bcrypt.compare(password, voterAutentication.password);
+    const isMatch = await bcrypt.compare(password, voterAuthentication.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Incorrect password' });
     }
 
-    res.status(200).json({ message: 'Login successful', voter: voterAutentication });
+    res.status(200).json({ message: 'Login successful', voter: voterAuthentication });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
 });
 
-//Position Schema
+// Position Schema
 const positionSchema = new mongoose.Schema({
   position: { type: String, required: true },
-  district: { type: String, required: true },
-  mandal: { type: String, required: true },
-  
 });
+
 const Positiondetails = mongoose.model('Positiondetails', positionSchema);
 
-app.post("/position",async(req,res) =>
-{
+// POST endpoint
+app.post("/position", async (req, res) => {
   try {
-    const position = new Positiondetails(req.body);
-    await position.save();
-    res.status(201).send(position);
+    // Validate the input data
+    if (!req.body.position) {
+      return res.status(400).send("Position is required");
+    }
+    
+    // Check for existing position with the same name to avoid duplicates
+    const existingPosition = await Positiondetails.findOne({ position: req.body.position });
+    if (existingPosition) {
+      return res.status(600).send("Position already exists");
+    }
+
+    // Create a new position entry
+    const position1 = new Positiondetails(req.body);
+    await position1.save();
+    
+    res.status(201).send(position1);
   } catch (error) {
-    res.status(401).send(error);
+    console.error("Error saving position:", error);
+    res.status(500).send(error.message || "An unexpected error occurred");
   }
 });
-
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
