@@ -15,6 +15,8 @@ export default function Voter_Login() {
   const onSubmit = (data) => {
     axios.post("http://localhost:5000/voterslogin", data)
       .then((response) => {
+        localStorage.setItem('voterName', response.data.voter.name);
+
         console.log(data);
         reset();
         navigate("/voterhomepage");

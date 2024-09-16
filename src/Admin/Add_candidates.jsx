@@ -186,9 +186,9 @@ const AddCandidate = () => {
 
       <div className="mt-8">
         <h2 className="text-2xl font-bold mb-4">Candidates</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-1">
           {candidates.map(candidate => (
-            <div key={candidate._id} className="bg-white p-4 rounded-lg shadow-md" style={{ height: '270px', width: '200px' }}>
+            <div key={candidate._id} className="bg-white p-4 rounded-lg shadow-md" style={{ height: '250px', width: '200px' }}>
               <img
                 src={`http://localhost:5000/uploads/${candidate.image}`}
                 alt={candidate.name}
