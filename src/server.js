@@ -62,6 +62,7 @@ const candidateSchema = new mongoose.Schema({
   position: { type: String, required: true },
   area: { type: String, required: true },
   image: { type: String, required: true },
+  vote_count:{type:Number}
 });
 
 const Candidate = mongoose.model('Candidate', candidateSchema);
@@ -278,6 +279,14 @@ app.post("/position", async (req, res) => {
   }
 });
 
+//Get request for candidate
+app.get('/getusers',async(req,res)=>
+{
+  
+  Candidate.find()
+  .then(candidate=>res.json(candidate))
+  .catch(err=>res.json(err))
+})
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
