@@ -16,6 +16,11 @@ export default function Voter_Login() {
     axios.post("http://localhost:5000/voterslogin", data)
       .then((response) => {
         localStorage.setItem('voterName', response.data.voter.name);
+        // localStorage.setItem('votedState', response.data.voter.votedCandidates);
+        localStorage.setItem('aadhar', response.data.voter.aadhar_number);
+
+
+
 
         console.log(data);
         reset();

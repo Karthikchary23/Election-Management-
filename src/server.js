@@ -7,6 +7,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { type } from 'os';
 
 const app = express();
 const port = 5000;
@@ -136,6 +137,7 @@ const voterSchema = new mongoose.Schema({
   address: { type: String, required: true },
   aadhar_number: { type: String, required: true },
   password: { type: String, required: true },
+  votedCandidates:{type:Boolean,default:true}
 });
 
 const Voter = mongoose.model('Voter', voterSchema);
@@ -287,6 +289,86 @@ app.get('/getusers',async(req,res)=>
   .then(candidate=>res.json(candidate))
   .catch(err=>res.json(err))
 })
+
+// app.post('/vote', async (req, res) => {
+//   const { userId } = req.body; // Extract userId from request body
+
+//   try {
+//     // Find the user (candidate) by their ID
+//     const user = await Candidate.findById(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ message: 'Candidate not found' });
+//     }
+
+//     // Increment the vote count
+//     user.vote_count += 1;
+
+//     // Save the updated user document back to the database
+//     await user.save();
+
+//     res.status(200).json({ message: 'Vote successfully recorded' });
+//   } catch (error) {
+//     console.error('Error recording vote:', error);
+//     res.status(500).json({ message: 'Internal Server Error', error });
+//   }
+// });
+//fetching voter details
+app.get('/voterdetails', async (req, res) => {
+  const { checkAadhar } = req.query; // Use query parameters
+  try {
+    // Find the user (candidate) by their Aadhar
+    const voterid = await Voter.findOne({ aadhar_number: checkAadhar });
+    if (!voterid) {
+      return res.status(404).json({ message: `Candidate with Aadhar number ${checkAadhar} not found` });
+    }
+
+    res.status(200).json({ name: voterid.name, aadhar: voterid.aadhar_number, votedCandidates: voterid.votedCandidates });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error', error });
+  }
+});
+
+
+// Backend route to update the voter's voted status
+// app.post('/updateVotedStatus', (req, res) => {
+//   const { aadhar, voted } = req.body;
+
+//   Voter.updateOne({ aadhar: aadhar }, { $set: { votedCandidates: voted } })
+//     .then(() => res.send("Voter status updated successfully"))
+//     .catch(err => res.status(500).send("Error updating voter status: " + err));
+// });
+
+// Endpoint to cast a vote and update votedCandidates status
+app.post('/vote', (req, res) => {
+  const { userId, aadhar } = req.body;
+
+  // Logic to increment the vote count for the candidate (user)
+  Candidate.findByIdAndUpdate(
+    userId,
+    { $inc: { voteCount: 1 } },  // Increment the candidate's vote count
+    { new: true }
+  )
+    .then(() => {
+      // After the candidate's vote count is updated, update the voter
+      Voter.findOneAndUpdate(
+        { aadhar_number: aadhar },
+        { $set: { votedCandidates: false } }  // Set votedCandidates to false
+      )
+        .then(() => {
+          res.status(200).send('Vote recorded and voter updated');
+        })
+        .catch((err) => {
+          res.status(500).send('Error updating voter status');
+        });
+    })
+    .catch((err) => {
+      res.status(500).send('Error updating candidate vote count');
+    });
+});
+
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
