@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { ToastContainer, toast, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddCandidate = () => {
   const [positions, setPositions] = useState([]);
@@ -69,7 +71,17 @@ const AddCandidate = () => {
 
     axios[method](url, data)
       .then(() => {
-        alert('Candidate saved!');
+        toast.success('Candidate Addedd Successfully', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Bounce,
+          });
         setIsModalOpen(false);
         fetchCandidates();
       })
@@ -94,6 +106,20 @@ const AddCandidate = () => {
   };
 
   return (
+    <>
+    <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition="Bounce"
+      />
     <div className="relative">
       <button
         onClick={handleAddCandidateClick}
@@ -197,6 +223,7 @@ const AddCandidate = () => {
               <h3 className="text-sm font-semibold">{candidate.name}</h3>
               <p className="text-xs text-gray-700">Position: {candidate.position}</p>
               <p className="text-xs text-gray-700">Area: {candidate.area}</p>
+              <p className="text-xs text-gray-700">Number of Votes: {candidate.vote_count}</p>
               <div className="flex justify-between mt-2">
                 <button
                   onClick={() => handleEditCandidate(candidate)}
@@ -216,6 +243,7 @@ const AddCandidate = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

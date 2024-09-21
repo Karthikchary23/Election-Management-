@@ -1,6 +1,8 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { ToastContainer, toast, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Admin_add() {
   // Call useForm inside the component
@@ -19,20 +21,63 @@ function Admin_add() {
       .then((response) => {
         console.log(response.data);
         reset();
-        alert("Added Admin successful!"); // Success alert
+        toast.success('Admin added successfully', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+          }); // Success alert
         // Clear the form fields after submitting
       })
       .catch((error) => {
         if (error.response && error.response.status === 600) {
-          alert("Admin already exists!"); // Show alert if user exists
+          toast.warning('Admin already exist1', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+            }); // Show alert if user exists
          } else {
-          console.error("There was an error registering the voter!", error);
-          alert("Server error, please try again later."); // General error alert
+          toast.warning('Admin already exist', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+            }); // General error alert
         }
       });
   };
 
   return (
+    <>
+    <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition="Bounce"
+      />
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-2xl font-bold mb-6 text-center">Add Admin</h2>
@@ -90,6 +135,7 @@ function Admin_add() {
         </form>
       </div>
     </div>
+    </>
   );
 }
 

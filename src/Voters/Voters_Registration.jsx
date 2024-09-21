@@ -1,6 +1,8 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { ToastContainer, toast, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const RegistrationForm = () => {
   const {
@@ -17,25 +19,77 @@ const RegistrationForm = () => {
       .then((response) => {
         console.log(response.data);
         reset(); // Clear the form fields after submitting
-        alert("Registration successful!"); // Success alert
+        toast.success('Registration successfully completed', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Bounce,
+          }); // Success alert
       })
       .catch((error) => {
         if (error.response && error.response.status === 400) {
-          alert("User already exists!"); // Show alert if user exists
+          toast.warn('user already exist', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+            transition: Bounce,
+            }); // Show alert if user exists
         } 
         else if(error.response && error.response.status === 502)
         {
-          alert("Aadhar Not found");
-
+          toast.error('Aadhar not found', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+            transition: Bounce,
+            });
         }
         else {
-          console.error("There was an error registering the voter!", error);
-          alert("Server error, please try again later."); // General error alert
+          toast.error('server issue', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+            transition: Bounce,
+            }); // General error alert
         }
       });
   };
 
   return (
+    <>
+    <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition="Bounce"
+      />
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-2xl font-bold mb-6 text-center">
@@ -199,6 +253,7 @@ const RegistrationForm = () => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 

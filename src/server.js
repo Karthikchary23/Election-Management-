@@ -7,7 +7,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { type } from 'os';
+// import { type } from 'os';
 
 const app = express();
 const port = 5000;
@@ -151,13 +151,21 @@ const AadharNumber = mongoose.model('AadharNumber', aadharSchema);
 
 app.post('/aadharbyadmin', async (req, res) => {
   try {
+    const { aadhar_number } = req.body;
+    const checkAadharExist = await AadharNumber.findOne({ aadhar_number });
+
+    if (checkAadharExist) {
+      return res.status(409).json({ message: "Aadhar Number already exists" }); // Return 409 Conflict if duplicate
+    }
+
     const aadhar = new AadharNumber(req.body);
     await aadhar.save();
-    res.status(201).send(aadhar);
+    res.status(200).json(aadhar);
   } catch (error) {
-    res.status(401).send(error);
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 // Voter Registration Route
 app.post('/register', async (req, res) => {
@@ -347,7 +355,7 @@ app.post('/vote', (req, res) => {
   // Logic to increment the vote count for the candidate (user)
   Candidate.findByIdAndUpdate(
     userId,
-    { $inc: { voteCount: 1 } },  // Increment the candidate's vote count
+    { $inc: { vote_count: 1 } },  // Increment the candidate's vote count
     { new: true }
   )
     .then(() => {
