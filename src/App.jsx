@@ -11,6 +11,7 @@ import Voter_home_page from './Voters/Voter_home_page';
 import Layout from './Admin/Layout';
 import Position from './Admin/Position';
 import Add_candidates from './Admin/Add_candidates';
+import Contact from './Voters/Contact';
 
 function App() {
   // Define the routes
@@ -30,6 +31,10 @@ function App() {
     {
       path: '/voterhomepage',
       element: <><LoadPage /><Voter_home_page /></>
+    },
+    {
+      path: '/contact',
+      element: <><LoadPage /><Contact /></>
     },
     {
       path: '/adminhomepage',

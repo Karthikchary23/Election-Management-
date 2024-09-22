@@ -12,7 +12,9 @@ export default function Voter_Homepage() {
     // Fetch candidates/users
     axios
       .get('http://localhost:5000/getusers')
-      .then((response) => setUsers(response.data))
+      .then((response) => {
+        setUsers(response.data); // Set users without sorting, as we'll group them by area
+      })
       .catch((err) => console.log(err));
 
     // Get the voter's Aadhar from localStorage
@@ -22,9 +24,8 @@ export default function Voter_Homepage() {
     // Fetch voter details to check if they've already voted
     axios.get(`http://localhost:5000/voterdetails`, { params: { checkAadhar: aadharId } })
       .then((response) => {
-        if (!response.data.votedCandidates)
-        {
-          alert("already voted")
+        if (!response.data.votedCandidates) {
+          alert("already voted");
         }
 
         setVoterName(response.data.name);
@@ -58,34 +59,56 @@ export default function Voter_Homepage() {
     }
   };
 
+  // Group candidates by their area
+  const groupByArea = () => {
+    const grouped = users.reduce((acc, user) => {
+      if (!acc[user.area]) {
+        acc[user.area] = [];
+      }
+      acc[user.area].push(user);
+      return acc;
+    }, {});
+
+    return grouped;
+  };
+
+  const groupedCandidates = groupByArea();
+
   return (
     <div className="flex flex-col items-start justify-start min-h-screen bg-gray-100">
-      <h1 className="text-2xl font-bold text-gray-800">Welcome, {voterName}!</h1>
+      <h1 className="px-6 text-2xl font-bold text-gray-800">Welcome, {voterName}!</h1>
       <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Candidates</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-1">
-          {users.map(user => (
-            <div key={user._id} className="bg-white p-4 rounded-lg shadow-md" style={{ height: '250px', width: '200px' }}>
-              <img
-                src={`http://localhost:5000/uploads/${user.image}`}
-                alt={user.name}
-                className="w-full h-1/2 object-cover mb-4 rounded-md"
-              />
-              <h3 className="text-sm font-semibold">{user.name}</h3>
-              <p className="text-xs text-gray-700">Position: {user.position}</p>
-              <p className="text-xs text-gray-700">Area: {user.area}</p>
-              <div className="flex justify-between mt-2">
-                <button
-                  onClick={() => voteCount(user._id)}
-                  disabled={voted}  // Disable all buttons if the user has already voted
-                  className={`py-1 px-2 text-xs rounded ${votedCandidate === user._id ? 'bg-green-500' : 'bg-yellow-500'} text-white hover:bg-yellow-600`}  // Green if this candidate was voted for
-                >
-                  {votedCandidate === user._id ? 'Voted' : 'Vote'}
-                </button>
-              </div>
+        {/* Iterate over grouped candidates by area */}
+        {Object.keys(groupedCandidates).map((area) => (
+          <div key={area} className="mb-8">
+            {/* Area heading */}
+            <h2 className="px-6 text-2xl font-bold mb-4">{area}</h2>
+            <div className=" px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {/* Render candidates under the same area */}
+              {groupedCandidates[area].map(user => (
+                <div key={user._id} className="bg-white p-4 rounded-lg shadow-md" style={{ height: '250px', width: '200px' }}>
+                  <img
+                    src={`http://localhost:5000/uploads/${user.image}`}
+                    alt={user.name}
+                    className="w-full h-1/2 object-cover mb-4 rounded-md"
+                  />
+                  <h3 className="text-sm font-semibold">{user.name}</h3>
+                  <p className="text-xs text-gray-700">Position: {user.position}</p>
+                  <p className="text-xs text-gray-700">Area: {user.area}</p>
+                  <div className="flex justify-between mt-2">
+                    <button
+                      onClick={() => voteCount(user._id)}
+                      disabled={voted}  // Disable all buttons if the user has already voted
+                      className={`py-1 px-2 text-xs rounded ${votedCandidate === user._id ? 'bg-green-500' : 'bg-yellow-500'} text-white hover:bg-yellow-600`}  // Green if this candidate was voted for
+                    >
+                      {votedCandidate === user._id ? 'Voted' : 'Vote'}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );
