@@ -33,14 +33,16 @@ export default function Voter_Login() {
   };
 
   return (
-    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+    
+    <div className=" lg:px-8 absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
+        <div className=" flex min-h-full flex-1 flex-col justify-center">
+        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <img
-          alt="Your Company"
-          src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-          className="mx-auto h-10 w-auto"
+          alt="/pika.jpg"
+          src="https://ih1.redbubble.net/image.4967388858.9480/flat,750x,075,f-pad,750x1000,f8f8f8.jpg"
+          className="mx-auto h-20 w-auto rounded-full"
         />
-        <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+        <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white ">
           Sign in to your account
         </h2>
       </div>
@@ -50,7 +52,7 @@ export default function Voter_Login() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium leading-6 text-gray-900"
+              className="block text-sm font-medium leading-6 text-white"
             >
               Email
             </label>
@@ -64,7 +66,7 @@ export default function Voter_Login() {
                   },
                 })}
                 placeholder="Email"
-                className="block w-full  px-3 py-2 rounded-md border-0  text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="block w-full  px-3 py-2 rounded-md border-0  text-black shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
               {errors.email_voter && (
                 <div className="text-red-700">
@@ -77,7 +79,7 @@ export default function Voter_Login() {
           <div>
             <label
               htmlFor="aadhar_number"
-              className="block text-sm font-medium leading-6 text-gray-900"
+              className="block text-sm font-medium leading-6 text-white"
             >
               Aadhar Number
             </label>
@@ -92,7 +94,7 @@ export default function Voter_Login() {
                 })}
                 placeholder="Aadhar number"
                 type="text"
-                className="block w-full rounded-md border-0 px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="block w-full rounded-md border-0 px-3 py-2 text-black shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
               {errors.aadhar_number && (
                 <div className="text-red-700">
@@ -106,7 +108,7 @@ export default function Voter_Login() {
             <div className="flex items-center justify-between">
               <label
                 htmlFor="password"
-                className="block text-sm font-medium leading-6 text-gray-900"
+                className="block text-sm font-medium leading-6 text-white"
               >
                 Password
               </label>
@@ -130,7 +132,7 @@ export default function Voter_Login() {
                 })}
                 placeholder="Password"
                 type="password"
-                className="block w-full rounded-md border-0 px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="block w-full rounded-md border-0 px-3 py-2 text-black shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
               {errors.password && (
                 <div className="text-red-700">{errors.password.message}</div>
@@ -148,6 +150,7 @@ export default function Voter_Login() {
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 }

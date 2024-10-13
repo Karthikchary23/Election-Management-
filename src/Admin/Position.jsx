@@ -62,13 +62,13 @@ const AddPosition = () => {
         theme="light"
         transition="Bounce"
       />
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-6 text-center">Position</h2>
+    <div className="min-h-screen flex items-center justify-center absolute inset-0 -z-10 h-full w-full  px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
+      <div className="border-white border-[2px] p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h2 className="text-2xl font-bold mb-6 text-center text-white ">Position</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label
-              className="block mb-2 text-sm font-medium text-gray-700"
+              className="block mb-2  font-medium text-gray-100 text-lg"
               htmlFor="position"
             >
               Position
@@ -85,7 +85,7 @@ const AddPosition = () => {
           </div>
           <button
             type="submit"
-            className="w-full px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+            className="w-full  text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
           >
             Submit
           </button>

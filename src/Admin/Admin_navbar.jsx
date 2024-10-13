@@ -1,7 +1,16 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function Admin_navbar() {
+  
+    const navigate = useNavigate();
+  
+    const handleLogout = () => {
+      localStorage.setItem('isAdminLoggedIn', 'false'); // Set admin login status to false
+      navigate('/admin_login'); // Navigate to admin login page
+    };
+  
   return (
     <div>
       <nav className="bg-white border-gray-200 dark:bg-gray-900">
@@ -12,10 +21,10 @@ function Admin_navbar() {
           </NavLink>
 
           <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-            <button type="button" className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" id="user-menu-button" aria-expanded="false" data-dropdown-toggle="user-dropdown" data-dropdown-placement="bottom">
-              <span className="sr-only">Open user menu</span>
-              <img className="w-8 h-8 rounded-full" src="/docs/images/people/profile-picture-3.jpg" alt="user photo" />
-            </button>
+          <button onClick={handleLogout} className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+              >
+                Logout
+              </button>
           </div>
 
           <div className="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-user">
@@ -34,7 +43,7 @@ function Admin_navbar() {
               </li>
               <li>
                 <NavLink
-                  to="/adminhomepage/addadmin"
+                  to="/addadmin"
                   className={({ isActive }) =>
                     isActive
                       ? "block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
@@ -46,7 +55,7 @@ function Admin_navbar() {
               </li>
               <li>
                 <NavLink
-                  to="/adminhomepage/position"
+                  to="/position"
                   className={({ isActive }) =>
                     isActive
                       ? "block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
@@ -58,7 +67,7 @@ function Admin_navbar() {
               </li>
               <li>
                 <NavLink
-                  to="/adminhomepage/addcandidate"
+                  to="/addcandidate"
                   className={({ isActive }) =>
                     isActive
                       ? "block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
@@ -70,7 +79,7 @@ function Admin_navbar() {
               </li>
               <li>
                 <NavLink
-                  to="/adminhomepage/aadharbyadmin"
+                  to="/aadharbyadmin"
                   className={({ isActive }) =>
                     isActive
                       ? "block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
@@ -80,6 +89,19 @@ function Admin_navbar() {
                   Add Aadhar
                 </NavLink>
               </li>
+              <li>
+                <NavLink
+                  to="/results"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
+                      : "block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                  }
+                >
+                  Results
+                </NavLink>
+              </li>
+              
               
             </ul>
           </div>

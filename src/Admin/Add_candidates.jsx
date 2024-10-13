@@ -100,9 +100,17 @@ const AddCandidate = () => {
   };
 
   const handleDeleteCandidate = (id) => {
-    axios.delete(`http://localhost:5000/candidates/${id}`)
-      .then(() => fetchCandidates())
-      .catch(error => console.error('Error deleting candidate:', error));
+    const isConfirmed = confirm("Are you sure you want to delete?");
+    
+    if (isConfirmed) {
+      axios.delete(`http://localhost:5000/candidates/${id}`)
+        .then(() => {
+          fetchCandidates(); // Refresh the candidates list
+        })
+        .catch(error => {
+          console.error('Error deleting candidate:', error);
+        });
+    }
   };
 
   return (
@@ -120,21 +128,22 @@ const AddCandidate = () => {
         theme="light"
         transition="Bounce"
       />
+      <div className='absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]'>
     <div className="relative">
       <button
         onClick={handleAddCandidateClick}
-        className="absolute top-4 right-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+        className="absolute  right-4 text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
       >
         Add Candidate
       </button>
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">{editingCandidateId ? 'Edit Candidate' : 'Add Candidate'}</h2>
+          <div className="border-white border-[2px] [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)] 	 rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-xl text-white flex items-center justify-center font-bold mb-4">{editingCandidateId ? 'Edit Candidate' : 'Add Candidate'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-sm font-medium text-white">
                   Candidate Name
                 </label>
                 <input
@@ -147,7 +156,7 @@ const AddCandidate = () => {
                 />
               </div>
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-sm font-medium text-white">
                   Position
                 </label>
                 <select
@@ -166,7 +175,7 @@ const AddCandidate = () => {
                 </select>
               </div>
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-sm font-medium text-white">
                   Area
                 </label>
                 <input
@@ -179,7 +188,7 @@ const AddCandidate = () => {
                 />
               </div>
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-sm font-medium text-white">
                   Candidate Photo
                 </label>
                 <input
@@ -210,38 +219,42 @@ const AddCandidate = () => {
         </div>
       )}
 
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Candidates</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-1">
-          {candidates.map(candidate => (
-            <div key={candidate._id} className="bg-white p-4 rounded-lg shadow-md" style={{ height: '250px', width: '200px' }}>
-              <img
-                src={`http://localhost:5000/uploads/${candidate.image}`}
-                alt={candidate.name}
-                className="w-full h-1/2 object-cover mb-4 rounded-md"
-              />
-              <h3 className="text-sm font-semibold">{candidate.name}</h3>
-              <p className="text-xs text-gray-700">Position: {candidate.position}</p>
-              <p className="text-xs text-gray-700">Area: {candidate.area}</p>
-              <p className="text-xs text-gray-700">Number of Votes: {candidate.vote_count}</p>
-              <div className="flex justify-between mt-2">
-                <button
-                  onClick={() => handleEditCandidate(candidate)}
-                  className="bg-yellow-500 text-white py-1 px-2 text-xs rounded hover:bg-yellow-600"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteCandidate(candidate._id)}
-                  className="bg-red-500 text-white py-1 px-2 text-xs rounded hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+<div className="mt-8">
+  <h2 className="text-2xl font-bold mb-4">Candidates</h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-1 ">
+    {candidates.map(candidate => (
+      <div key={candidate._id} className="border-white border-[2px] p-4 rounded-lg shadow-md bg-gray-500 bg-opacity-10" style={{ height: '250px', width: '200px' }}>
+        <img
+          src={`http://localhost:5000/uploads/${candidate.image}`}
+          alt={candidate.name}
+          className="w-full h-1/2 object-cover mb-4 rounded-md"
+        />
+        <h3 className="text-ms text-white font-bold">{candidate.name}</h3>
+        <p className="text-xs text-white font-semibold">Position: <span>{candidate.position}</span></p>
+        <p className="text-xs text-white font-semibold">Area: <span>{candidate.area}</span></p>
+        <p className="text-xs text-white font-semibold">Number of Votes: <span>{candidate.vote_count}</span></p>
+        <div className="flex justify-between mt-2">
+          <button
+            onClick={() => handleEditCandidate(candidate)}
+            className=" text-white  text-xs rounded hover:bg-yellow-600 flex items-center justify-center"
+            style={{ width: '25px', height: '25px' }}
+          >
+            <img src="/edit.gif" alt="Edit" className="w-full h-full object-contain" />
+          </button>
+          <button
+            onClick={() => handleDeleteCandidate(candidate._id)}
+            className=" text-white  text-xs rounded hover:bg-red-600 flex items-center justify-center"
+            style={{ width: '25px', height: '25px' }}
+          >
+            <img src="/delete.gif" alt="Delete" className="w-full h-full object-contain" />
+          </button>
         </div>
       </div>
+    ))}
+  </div>
+</div>
+
+    </div>
     </div>
     </>
   );

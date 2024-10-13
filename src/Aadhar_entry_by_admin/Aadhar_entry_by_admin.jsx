@@ -64,15 +64,18 @@ function Aadhar_entry_by_admin() {
         theme="light"
         transition="Bounce"
       />
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+
+    <div className=" text-white min-h-screen flex items-center justify-center absolute inset-0 -z-10 h-full w-full  px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
+      <div className="border-white border-2 p-8 rounded-lg shadow-lg max-w-md w-full text-white">
         <h2 className="text-2xl font-bold mb-6 text-center">
             Aadhar Entry
         </h2>
+        <div className=" h-1 opacity-10"></div>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label
-              className="block mb-2 text-sm font-medium text-gray-700"
+              className="block mb-2 text-sm font-medium text-white"
               htmlFor="aadhar_number"
             >
               Aadhar Number
@@ -89,17 +92,18 @@ function Aadhar_entry_by_admin() {
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
-            {errors.aadhar_number && <div>{errors.aadhar_number.message}</div>}
+            {errors.aadhar_number && <div className="text-red-700">{errors.aadhar_number.message}</div>}
           </div>
           <button
             type="submit"
-            className="w-full px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+            className="w-full py-2text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
           >
             Submit
           </button>
         </form>
       </div>
     </div>
+    
     </>
   );
 }

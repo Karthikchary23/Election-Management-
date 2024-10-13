@@ -6,12 +6,15 @@ export default function Voter_Homepage() {
   const [users, setUsers] = useState([]);
   const [votedCandidate, setVotedCandidate] = useState(null); // Store the ID of the voted candidate
   const [aadhar, setaadhar] = useState("");
-  const [voted, setVoted] = useState(false);  // Controls if the user has voted at all
+  const [voted, setVoted] = useState(false); // Controls if the user has voted at all
+  const [address, setAddress] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // State for search
+  const [selectedArea, setSelectedArea] = useState(""); // State for area filter
 
   useEffect(() => {
     // Fetch candidates/users
     axios
-      .get('http://localhost:5000/getusers')
+      .get("http://localhost:5000/getusers")
       .then((response) => {
         setUsers(response.data); // Set users without sorting, as we'll group them by area
       })
@@ -22,16 +25,21 @@ export default function Voter_Homepage() {
     setaadhar(aadharId);
 
     // Fetch voter details to check if they've already voted
-    axios.get(`http://localhost:5000/voterdetails`, { params: { checkAadhar: aadharId } })
+    axios
+      .get(`http://localhost:5000/voterdetails`, {
+        params: { checkAadhar: aadharId },
+      })
       .then((response) => {
-        if (!response.data.votedCandidates) {
+        console.log(response);
+        setAddress(response.data.address);
+        if (response.data.votedCandidates) {
           alert("already voted");
         }
 
         setVoterName(response.data.name);
-        if (!response.data.votedCandidates) {
+        if (response.data.votedCandidates) {
           setVotedCandidate(response.data.votedCandidateId); // Set the voted candidate's ID if it exists
-          setVoted(true);  // Set voted to true if they've already voted
+          setVoted(true); // Set voted to true if they've already voted
         }
       })
       .catch((err) => {
@@ -41,21 +49,31 @@ export default function Voter_Homepage() {
 
   // Function to handle vote submission and update the voter's status
   const voteCount = (userId) => {
-    if (!voted) {  // Allow voting only if the voter hasn't already voted
+    if (!voted) {
+      // Allow voting only if the voter hasn't already voted
       setVotedCandidate(userId);
 
       // Send the vote to the backend to update the database
-      axios.post('http://localhost:5000/vote', { userId, aadhar })
+      axios
+        .post("http://localhost:5000/vote", { userId, aadhar, address })
         .then(() => {
           console.log("Vote successfully recorded");
 
           // After the vote, update the frontend state to reflect that the user has voted
-          setVoted(true);  // This disables the button after voting
-          alert("Vote successfully recorded!");  // Alert after voting
+          setVoted(true); // This disables the button after voting
+          alert("Vote successfully recorded!"); // Alert after voting
         })
-        .catch((err) => console.log("Error casting vote: ", err));
+        .catch((err) => {
+          if (err.response && err.response.status === 404) {
+            // If 404 error is returned from the server, it means the user is trying to vote for someone in another area
+            alert("You cannot vote for a candidate in another area!");
+          } else {
+            console.log("Error casting vote: ", err);
+            alert("An error occurred while casting your vote.");
+          }
+        });
     } else {
-      alert("You have already voted!");  // Show alert if the user has already voted
+      alert("You have already voted!"); // Show alert if the user has already voted
     }
   };
 
@@ -74,41 +92,77 @@ export default function Voter_Homepage() {
 
   const groupedCandidates = groupByArea();
 
+  // Filter candidates based on search term and selected area
+  const filteredCandidates = users.filter((user) => {
+    return (
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (selectedArea === "" || user.area === selectedArea)
+    );
+  });
+
   return (
-    <div className="flex flex-col items-start justify-start min-h-screen bg-gray-100">
-      <h1 className="px-6 text-2xl font-bold text-gray-800">Welcome, {voterName}!</h1>
-      <div className="mt-8">
-        {/* Iterate over grouped candidates by area */}
-        {Object.keys(groupedCandidates).map((area) => (
-          <div key={area} className="mb-8">
-            {/* Area heading */}
-            <h2 className="px-6 text-2xl font-bold mb-4">{area}</h2>
-            <div className=" px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {/* Render candidates under the same area */}
-              {groupedCandidates[area].map(user => (
-                <div key={user._id} className="bg-white p-4 rounded-lg shadow-md" style={{ height: '250px', width: '200px' }}>
-                  <img
-                    src={`http://localhost:5000/uploads/${user.image}`}
-                    alt={user.name}
-                    className="w-full h-1/2 object-cover mb-4 rounded-md"
-                  />
-                  <h3 className="text-sm font-semibold">{user.name}</h3>
-                  <p className="text-xs text-gray-700">Position: {user.position}</p>
-                  <p className="text-xs text-gray-700">Area: {user.area}</p>
-                  <div className="flex justify-between mt-2">
-                    <button
-                      onClick={() => voteCount(user._id)}
-                      disabled={voted}  // Disable all buttons if the user has already voted
-                      className={`py-1 px-2 text-xs rounded ${votedCandidate === user._id ? 'bg-green-500' : 'bg-yellow-500'} text-white hover:bg-yellow-600`}  // Green if this candidate was voted for
-                    >
-                      {votedCandidate === user._id ? 'Voted' : 'Vote'}
-                    </button>
-                  </div>
-                </div>
-              ))}
+    <div className="flex flex-col items-start justify-start min-h-screen bg-gray-900 text-white">
+      <h1 className="px-6 text-2xl font-bold text-white">
+        Welcome, {voterName}!  from {address}
+      </h1>
+      <div className="mt-8 w-full px-6">
+        {/* Search bar */}
+        
+
+        {/* Dropdown to filter by area */}
+        <select
+          value={selectedArea}
+          onChange={(e) => setSelectedArea(e.target.value)}
+          className="mb-4 p-2 rounded w-60 bg-gray-800 text-white"
+        >
+          <option value="">All Areas</option>
+          {Object.keys(groupedCandidates).map((area) => (
+            <option key={area} value={area}>
+              {area}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          placeholder="Search by candidate name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="mb-4 p-2 rounded ml-5  w-1/2 bg-gray-800 text-white placeholder-gray-400"
+        />
+
+        {/* Iterate over filtered candidates */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {filteredCandidates.map((user) => (
+            <div
+              key={user._id}
+              className="bg-gray-800 p-4 rounded-lg shadow-md"
+              style={{ height: "250px", width: "200px" }}
+            >
+              <img
+                src={`http://localhost:5000/uploads/${user.image}`}
+                alt={user.name}
+                className="w-full h-1/2 object-cover mb-4 rounded-md"
+              />
+              <h3 className="text-sm font-semibold">{user.name}</h3>
+              <p className="text-xs text-gray-300">Position: {user.position}</p>
+              <p className="text-xs text-gray-300">Area: {user.area}</p>
+              <div className="flex justify-between mt-2">
+                <button
+                  onClick={() => voteCount(user._id)}
+                  disabled={voted} // Disable all buttons if the user has already voted
+                  className={`py-1 px-2 text-xs rounded ${
+                    votedCandidate === user._id && voted
+                      ? "bg-green-500"
+                      : ""
+                  } text-white hover:bg-gray-700`}            style={{ width: '40px', height: '40px' }}
+                  // Green if this candidate was successfully voted for
+                >
+                  {votedCandidate === user._id && voted ? <img src="/vote.gif" alt="Edit" className="w-full h-full object-contain" /> : <img src="/vote.gif" alt="Edit" className="w-full h-full object-contain" />}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

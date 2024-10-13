@@ -12,8 +12,10 @@ import Layout from './Admin/Layout';
 import Position from './Admin/Position';
 import Add_candidates from './Admin/Add_candidates';
 import Contact from './Voters/Contact';
+import Results from './Admin/Results';
 
 function App() {
+  
   // Define the routes
   const router = createBrowserRouter([
     {
@@ -37,7 +39,7 @@ function App() {
       element: <><LoadPage /><Contact /></>
     },
     {
-      path: '/adminhomepage',
+      path: '/',
       element: <ProtectedRoute><Layout /></ProtectedRoute>,
       children: [
         {
@@ -59,6 +61,9 @@ function App() {
         {
           path: 'addcandidate',
           element: <Add_candidates />
+        },{
+          path: 'results',
+          element: <Results />
         },
       ]
     }
