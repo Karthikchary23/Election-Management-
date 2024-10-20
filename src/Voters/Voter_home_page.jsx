@@ -1,22 +1,23 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 
 export default function Voter_Homepage() {
   const [voterName, setVoterName] = useState("");
   const [users, setUsers] = useState([]);
-  const [votedCandidate, setVotedCandidate] = useState(null); // Store the ID of the voted candidate
+  const [votedCandidate, setVotedCandidate] = useState(null); 
   const [aadhar, setaadhar] = useState("");
-  const [voted, setVoted] = useState(false); // Controls if the user has voted at all
+  const [voted, setVoted] = useState(false); 
   const [address, setAddress] = useState("");
-  const [searchTerm, setSearchTerm] = useState(""); // State for search
-  const [selectedArea, setSelectedArea] = useState(""); // State for area filter
+  const [searchTerm, setSearchTerm] = useState(""); 
+  const [selectedArea, setSelectedArea] = useState(""); 
 
   useEffect(() => {
     // Fetch candidates/users
     axios
       .get("http://localhost:5000/getusers")
       .then((response) => {
-        setUsers(response.data); // Set users without sorting, as we'll group them by area
+        setUsers(response.data); 
       })
       .catch((err) => console.log(err));
 
@@ -99,12 +100,42 @@ export default function Voter_Homepage() {
       (selectedArea === "" || user.area === selectedArea)
     );
   });
-
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    // Show confirmation dialog
+    const confirmed = window.confirm('Are you sure you want to logout?');
+  
+    if (confirmed) {
+      // Clear local storage if confirmed
+      localStorage.clear();
+  
+      // Navigate to the home page
+      navigate('/');
+    } else {
+      // Do nothing if cancelled
+      return; 
+    }
+  };
   return (
     <div className="flex flex-col items-start justify-start min-h-screen bg-gray-900 text-white">
-      <h1 className="px-6 text-2xl font-bold text-white">
-        Welcome, {voterName}!  from {address}
-      </h1>
+      
+      <div className="flex justify-between items-center  w-full">
+  <div className="px-6">
+    <h1 className="text-2xl font-bold text-white">
+      Welcome, {voterName}! from {address}
+    </h1>
+  </div>
+  <div className="right-5">
+    <button 
+      onClick={handleLogout} 
+      className="text-white mt-3  bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+    >
+      Logout
+    </button>
+  </div>
+</div>
+
+        
       <div className="mt-8 w-full px-6">
         {/* Search bar */}
         

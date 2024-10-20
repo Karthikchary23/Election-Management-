@@ -8,8 +8,29 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { log } from 'console';
-// import { type } from 'os';
+import crypto from 'crypto'
 
+
+const algorithm = 'aes-256-cbc'; 
+const keyNumber = 12345678901234567890123456789012; 
+const key = Buffer.from(String(keyNumber).padEnd(32, '0')).slice(0, 32); 
+const iv = Buffer.from('1234567890123456'); 
+
+// Encrypt function
+function encrypt(text) {
+  const cipher = crypto.createCipheriv(algorithm, key, iv);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return { iv: iv.toString('hex'), encryptedData: encrypted };
+}
+
+// Decrypt function
+function decrypt(encryptedData) {
+  const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(encryptedData.iv, 'hex'));
+  let decrypted = decipher.update(encryptedData.encryptedData, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+}
 const app = express();
 const port = 5000;
 
@@ -145,7 +166,7 @@ const Voter = mongoose.model('Voter', voterSchema);
 
 // Aadhar Schema
 const aadharSchema = new mongoose.Schema({
-  aadhar_number: { type: String, required: true },
+  aadhar_number: { type: String, required: true, unique: true },
 });
 
 const AadharNumber = mongoose.model('AadharNumber', aadharSchema);
@@ -153,13 +174,16 @@ const AadharNumber = mongoose.model('AadharNumber', aadharSchema);
 app.post('/aadharbyadmin', async (req, res) => {
   try {
     const { aadhar_number } = req.body;
-    const checkAadharExist = await AadharNumber.findOne({ aadhar_number });
+
+    const checkAadharExist = await AadharNumber.findOne({ aadhar_number: encrypt(aadhar_number).encryptedData });
 
     if (checkAadharExist) {
       return res.status(409).json({ message: "Aadhar Number already exists" }); // Return 409 Conflict if duplicate
     }
 
-    const aadhar = new AadharNumber(req.body);
+    const encryptedAadhar = encrypt(aadhar_number);
+    const aadhar = new AadharNumber({ aadhar_number: encryptedAadhar.encryptedData });
+
     await aadhar.save();
     res.status(200).json(aadhar);
   } catch (error) {
@@ -171,29 +195,60 @@ app.post('/aadharbyadmin', async (req, res) => {
 // Voter Registration Route
 app.post('/register', async (req, res) => {
   try {
-    const { email, aadhar_number, phone, password } = req.body;
+    const { name, email, phone, address, aadhar_number, password, votedCandidates } = req.body;
 
-    const existingAadhar = await AadharNumber.findOne({ aadhar_number });
+    // Validate input
+    if (!name || !email || !phone || !address || !aadhar_number || !password) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Encrypt Aadhar number
+    const { encryptedData } = encrypt(aadhar_number);
+
+    // Check if the Aadhar number exists in the AadharNumber collection
+    const existingAadhar = await AadharNumber.findOne({ aadhar_number: encryptedData });
     if (!existingAadhar) {
       return res.status(502).json({ message: 'Invalid Aadhar number' });
     }
 
+    // Check if a user with the same email, phone, or Aadhar number already exists
     const existingVoter = await Voter.findOne({
-      $or: [{ email }, { aadhar_number }, { phone }],
+      $or: [{ email }, { phone }, { aadhar_number: encryptedData }] // Ensure this checks encrypted Aadhar
     });
 
     if (existingVoter) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const voter = new Voter({ ...req.body, password: hashedPassword });
+
+    // Create a new voter with the encrypted Aadhar
+    const voter = new Voter({
+      name,
+      email,
+      phone,
+      address,
+      aadhar_number: encryptedData,
+      iv, // Store the IV as well
+      password: hashedPassword,
+      votedCandidates
+    });
+
+    // Save the voter
     await voter.save();
-    res.status(201).json(voter);
+
+    // Remove the password from the voter object before sending it in the response
+    const { password: _, ...voterWithoutPassword } = voter.toObject(); // Remove password before sending response
+
+    // Send successful response
+    res.status(201).json({ message: 'User registered successfully', voter: voterWithoutPassword });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    console.error(error); // Log the error for debugging
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
 
 // Admin Schema and Routes
 const adminSchema = new mongoose.Schema({
@@ -248,27 +303,45 @@ app.post('/admin_login', async (req, res) => {
 // Voter Login
 app.post("/voterslogin", async (req, res) => {
   const { email_voter, password, aadhar_number } = req.body;
+  
   try {
+    // Find the voter by email
     const voterAuthentication = await Voter.findOne({ email: email_voter });
-
+    
+    // Check if the voter exists
     if (!voterAuthentication) {
       return res.status(400).json({ message: 'Email not found' });
     }
-    if (voterAuthentication.aadhar_number !== aadhar_number) {
+
+    // Encrypt the provided Aadhar number for comparison
+    const { encryptedData: encryptedAadhar } = encrypt(aadhar_number);
+
+    // Check if the Aadhar number matches
+    if (voterAuthentication.aadhar_number !== encryptedAadhar) {
       return res.status(400).json({ message: 'Incorrect Aadhar number' });
     }
 
+    // Compare the provided password with the stored hashed password
     const isMatch = await bcrypt.compare(password, voterAuthentication.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Incorrect password' });
     }
 
-    res.status(200).json({ message: 'Login successful', voter: {name:voterAuthentication.name,email: voterAuthentication.email,
-      aadhar_number: voterAuthentication.aadhar_number} });
+    // Send successful login response without sensitive information
+    res.status(200).json({
+      message: 'Login successful',
+      voter: {
+        name: voterAuthentication.name,
+        email: voterAuthentication.email,
+        aadhar_number: voterAuthentication.aadhar_number // Note: Consider if you want to expose this
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    console.error('Login error:', error); // Log the error for debugging
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
 
 // Add position (POST)
 app.post("/position", async (req, res) => {
@@ -328,16 +401,9 @@ app.post('/vote', async (req, res) => {
     // Find the candidate by userId
     const candidate = await Candidate.findOne({ _id: userId });
 
-    // Check if the candidate exists and the address matches
-    // if (!candidate || candidate.area !== address) {
-    //   return res.status(404).json({ message: "Candidate not found or address mismatch" });
-    // }
     if (!candidate || candidate.area.trim().toLowerCase() !== address.trim().toLowerCase()) {
       return res.status(404).json({ message: "Candidate not found or address mismatch" });
     }
-    
-
-    // Increment the candidate's vote count
     await Candidate.findByIdAndUpdate(
       userId,
       { $inc: { vote_count: 1 } },  // Increment vote count
@@ -361,8 +427,6 @@ app.post('/vote', async (req, res) => {
     res.status(500).json({ message: 'Error processing the vote' });
   }
 });
-
-
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
