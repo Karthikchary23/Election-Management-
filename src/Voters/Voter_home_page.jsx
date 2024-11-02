@@ -31,7 +31,7 @@ export default function Voter_Homepage() {
         params: { checkAadhar: aadharId },
       })
       .then((response) => {
-        console.log(response);
+       
         setAddress(response.data.address);
         if (response.data.votedCandidates) {
           alert("already voted");

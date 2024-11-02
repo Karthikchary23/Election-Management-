@@ -9,6 +9,9 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { log } from 'console';
 import crypto from 'crypto'
+import nodemailer from'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
 
 
 const algorithm = 'aes-256-cbc'; 
@@ -390,9 +393,18 @@ app.get('/voterdetails', async (req, res) => {
   }
 });
 
-
-
-
+app.post('/findmail', async (req, res) => {
+  const { email: existVoterEmail } = req.body; // Get email from request body
+  try {
+    const Existemail = await Voter.findOne({ email: existVoterEmail });
+    if (!Existemail) {
+      return res.status(404).json({ message: "email not found" });
+    }
+    return res.status(200).json({ email: Existemail.email });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error', error });
+  }
+});
 // Endpoint to cast a vote and update votedCandidates status
 app.post('/vote', async (req, res) => {
   const { userId, aadhar, address } = req.body;
@@ -425,6 +437,54 @@ app.post('/vote', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error processing the vote' });
+  }
+});
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+      user: "q124441@gmail.com", // Ensure this is set
+      pass: "uzpz qdea yywa zgzw", // Ensure this is set
+  },
+});
+
+const OTPs = {}; // Store OTPs
+
+// Route to send OTP
+app.post('/send-otp', (req, res) => {
+  const { email } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
+  console.log(otp);
+  console.log(email)
+  OTPs[email] = otp;
+  
+
+  const mailOptions = {
+      from: "q124441@gmail.com",
+      to: email,
+      subject: 'Your OTP Code',
+      text: `Your OTP code is ${otp}. It is valid for 10 minutes.`,
+  };
+
+  transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+          console.error('Error sending email:', err);
+          return res.status(500).json({ message: 'Failed to send OTP', error: err.toString() });
+      } else {
+          console.log('Email sent:', info.response);
+          return res.status(200).json({ message: 'OTP sent successfully' });
+      }
+  });
+});
+
+// Route to verify OTP
+app.post('/verify-otp', (req, res) => {
+  const { email, otp } = req.body;
+  if (parseInt(otp) === OTPs[email]) {
+      delete OTPs[email]; // Remove OTP after verification
+      res.status(200).json({ message: 'OTP verified successfully' });
+  } else {
+      res.status(400).json({ message: 'Invalid OTP' });
   }
 });
 app.listen(port, () => {
