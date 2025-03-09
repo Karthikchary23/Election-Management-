@@ -7,7 +7,6 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { log } from 'console';
 import crypto from 'crypto'
 import nodemailer from'nodemailer';
 import dotenv from 'dotenv';

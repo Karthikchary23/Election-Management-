@@ -83,6 +83,10 @@ function Aadhar_entry_by_admin() {
             <input
               {...register("aadhar_number", {
                 required: "Aadhar number is required",
+                minLength: {
+                  value: 12,
+                  message: "Aadhar number must be 12 digits",
+                },
                 maxLength: {
                   value: 12,
                   message: "Aadhar number must be 12 digits",
